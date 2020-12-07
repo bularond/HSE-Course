@@ -1,6 +1,6 @@
 #pragma once
 #include <cstddef>
-
+#include <initializer_list>
 
 namespace task {
 
@@ -11,6 +11,7 @@ public:
 
     list();
     list(size_t count, const int& value = int());
+    list(const list& other);
 
     ~list();
     list& operator=(const list& other);
@@ -40,12 +41,28 @@ public:
     void unique();
     void sort();
 
-    // Your code goes here?..
 
 private:
+    struct Node {
+        Node(const int& data) : data(data), prev(nullptr), next(nullptr) {}
+        Node(const int& data, Node* prev, Node* next): data(data), prev(prev), next(next) {}
+        ~Node() = default;
 
-    // Your code goes here...
+        int data;
+        Node* prev;
+        Node* next;
+    };
 
+    Node *tail, *head;
+
+    size_t m_size;
+
+    void _remove_node_from_list(Node* &node);
+    static void _merge_sort(list& left);
+    void push_back(Node *node);
+    void push_front(Node *node);
+
+    void _remove_node(Node *node);
 };
 
 }  // namespace task
