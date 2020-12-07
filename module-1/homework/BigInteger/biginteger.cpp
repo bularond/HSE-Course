@@ -65,6 +65,11 @@ BigInteger::BigInteger(unsigned int n) {
     }
 }
 
+BigInteger::BigInteger(const BigInteger& other) {
+    sign = other.sign;
+    figures = other.figures;
+}
+
 std::istream &operator>>(std::istream &is, BigInteger &n) {
     std::string str;
     is >> str;
@@ -197,26 +202,22 @@ const BigInteger BigInteger::operator-(const BigInteger& r) const {
     return out;
 }
 
- BigInteger& BigInteger::operator*=(const BigInteger& r) {
-    BigInteger l = BigInteger(*this);
-    sign = l.sign ^ r.sign;
-    figures = std::vector<int>(l.figures.size() + r.figures.size());
+BigInteger& BigInteger::operator*=(const BigInteger& r) {
+    BigInteger l;
+    l.figures.resize(figures.size() + r.figures.size());
 
-    long long carry, tmp;
-    for (size_t i = 0; i < l.figures.size(); i++) {
-        carry = 0;
-
+    long long carry = 0;
+    for (size_t i = 0; i < figures.size(); i++) {
         for (size_t j = 0; j < r.figures.size() || carry; j++) {
-            tmp = figures[i + j] + carry;
-            if (j < r.figures.size()) {
-                tmp += l.figures[i] * r.figures[j];
-            }
-            figures[i + j] = tmp % BigInteger::BASE;
-            carry = tmp / BigInteger::BASE;
+            long long cur = l.figures[i + j] + figures[i] * (j < r.figures.size() ? r.figures[j] : 0) + carry;
+            l.figures[i + j] = cur % BigInteger::BASE;
+            carry = cur / BigInteger::BASE;
         }
     }
 
-    trim();
+    l.trim();
+    figures = l.figures;
+    sign != r.sign;
     return *this;
 }
 
@@ -226,14 +227,54 @@ const BigInteger BigInteger::operator*(const BigInteger& r) const {
     return out;
 }
 
+void BigInteger::shift_fight() {
+    if (figures.empty()) {
+        figures.push_back(0);
+        return;
+    }
+
+    figures.push_back(figures[figures.size() - 1]);
+    for (int i = figures.size() - 2; i > 0; i--) {
+        figures[i] = figures[i - 1];
+    }
+
+    figures[0] = 0;
+}
+
 BigInteger& BigInteger::operator/=(const BigInteger& r) {
     if (r == BigInteger(0)) {
         throw std::logic_error("division by zero");
     }
 
+    BigInteger base = r;
+    base.sign = false;
+    BigInteger res, cur;
+    res.figures.resize(figures.size());
 
+    for (int i = figures.size() - 1; i >= 0; i--) {
+        cur.shift_fight();
+        cur.figures[0] = figures[i];
+        cur.trim();
 
-    return *this;
+        int ans = 0, left = 0, right = BigInteger::BASE, middle;
+        while (left <= right) {
+            middle = (left + right) / 2;
+            if (base * BigInteger(middle) <= cur) {
+                ans = middle;
+                left = middle + 1;
+            }
+            else {
+                right = middle - 1;
+            }
+        }
+
+        res.figures[i] = ans;
+        cur = cur - base * BigInteger(ans);
+    }
+
+    res.sign = sign != r.sign;
+    res.trim();
+    return *this = res;
 }
 
 const BigInteger BigInteger::operator/(const BigInteger& r) const {
@@ -243,6 +284,10 @@ const BigInteger BigInteger::operator/(const BigInteger& r) const {
 }
 
 BigInteger& BigInteger::operator%=(const BigInteger& r) {
+    *this -= (*this / r) * r;
+    if (sign) {
+        *this += r;
+    }
     return *this;
 }
 
