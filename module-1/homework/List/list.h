@@ -53,7 +53,8 @@ private:
         Node* next;
     };
 
-    Node *tail, *head;
+    Node* head;
+    Node* tail;
 
     size_t m_size;
 
