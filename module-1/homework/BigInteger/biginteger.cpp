@@ -251,12 +251,16 @@ BigInteger& BigInteger::operator/=(const BigInteger& r) {
     BigInteger res, cur;
     res.figures.resize(figures.size());
 
-    for (int i = figures.size() - 1; i >= 0; i--) {
+    for (size_t i = 1; i <= figures.size(); i++) {
         cur.shift_fight();
-        cur.figures[0] = figures[i];
+        cur.figures[0] = figures[figures.size() - i];
         cur.trim();
 
-        int ans = 0, left = 0, right = BigInteger::BASE, middle;
+        int ans = 0;
+        int left = 0;
+        int right = BigInteger::BASE;
+        int middle;
+
         while (left <= right) {
             middle = (left + right) / 2;
             if (base * BigInteger(middle) <= cur) {
@@ -268,7 +272,7 @@ BigInteger& BigInteger::operator/=(const BigInteger& r) {
             }
         }
 
-        res.figures[i] = ans;
+        res.figures[figures.size() - i] = ans;
         cur = cur - base * BigInteger(ans);
     }
 

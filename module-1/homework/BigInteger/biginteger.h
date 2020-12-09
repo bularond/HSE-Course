@@ -53,10 +53,6 @@ public:
     std::string toString() const { return std::string(*this); }
 
     void trim();
-//    void shright();
-
-//    static const BigInteger commonMult(const BigInteger&, const BigInteger&);
-//    static const BigInteger shortPower(const BigInteger& a, int n);
 
 private:
     static const int BASE = 10;
